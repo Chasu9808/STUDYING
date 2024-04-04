@@ -1,0 +1,197 @@
+-- 1. professor 테이블에서 교수의 이름과 학과명을 출력하되
+-- 학과 번호가 101번이면 'Computer Engineering'
+-- 102 = 'Multimedia Engineering'
+-- 103 = 'Software Engineering'
+-- 나머지는 'ETC'로 출력하세요
+
+SELECT * FROM PROFESSOR;
+SELECT PROFNO, NAME,DEPTNO,
+DECODE(DEPTNO,101,'Computer Engineering',
+              102,'Multimedia Engineering',
+              103, 'Software Engineering',
+              'ETC')
+FROM PROFESSOR;
+
+-- 2. STUDENT
+SELECT * FROM STUDENT;
+-- TEL의 지역번호에서 02 서울, 051 부산, 052 울산, 053 대구
+-- 나머지는 기타로 출력
+-- 이름, 전화번호, 지역 출력
+
+-- SELECT NAME,TEL,
+-- CASE
+-- WHEN SUBSTR(TEL,1,3) LIKE '02%' THEN '서울'
+-- WHEN SUBSTR(TEL,1,3) LIKE '051%' THEN '부산'
+-- WHEN SUBSTR(TEL,1,3) LIKE '052%' THEN '울산'
+-- WHEN SUBSTR(TEL,1,3) LIKE '053%' THEN '대구'
+-- ELSE '기타'
+-- END AS "지역"
+-- FROM STUDENT;
+
+SELECT NAME, TEL,
+DECODE (SUBSTR(TEL ,1,INSTR(TEL, ')')-1),'2','서울',
+'051','부산',
+'052','울산',
+'053','대구',
+'기타')지역
+FROM STUDENT;
+
+-- PROFESSOR 테이블
+-- 학과별로 소속 교수들의 평균급여, 최소급여, 최대급여 출력
+-- 단, 평균급여가 300 넘는 것만 출력
+SELECT * FROM PROFESSOR;
+SELECT DEPTNO ,ROUND(AVG(PAY)),MIN(PAY),MAX(PAY)
+FROM PROFESSOR
+GROUP BY DEPTNO
+HAVING AVG(PAY) > 300
+ORDER BY DEPTNO;
+
+--STUDENT 테이블
+--학생수가 4명 이상인 학년에 대해서 학년, 학생 수, 평균 키, 평균 몸무게를 출력
+--단, 평균 키와 평균 몸무게는 소숫점 첫 번째 자리에서 반올림하고,
+--출력순서는 평균 키가 높은 순부터 내림차순으로 출력하여라.
+SELECT * FROM STUDENT;
+SELECT GRADE ||'학년', COUNT(*) 학생수, ROUND(AVG(HEIGHT)) 평균키, ROUND(AVG(WEIGHT)) 평균몸무게
+FROM STUDENT
+GROUP BY GRADE
+HAVING COUNT(*) >=4
+ORDER BY AVG(HEIGHT) DESC;
+
+-- 학생이름, 지도교수 이름 출력
+SELECT * FROM STUDENT;
+SELECT * FROM PROFESSOR;
+
+
+SELECT S.NAME 학생,P.NAME 지도교수  
+FROM STUDENT S,PROFESSOR P
+WHERE S.PROFNO = P.PROFNO;
+
+SELECT S.NAME 학생,P.NAME 지도교수 
+FROM STUDENT S JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO;
+
+--GIFT, CUSTOMER
+SELECT * FROM GIFT;
+SELECT * FROM CUSTOMER;
+--고객이름, 포인트, 선물
+--비 등가 조인
+SELECT C.GNAME 고객이름, C.POINT 포인트, G.GNAME 선물
+FROM CUSTOMER C, GIFT G
+WHERE C.POINT BETWEEN G_START AND G_END;
+
+SELECT C.GNAME 고객이름, C.POINT 포인트, G.GNAME 선물
+FROM CUSTOMER C JOIN GIFT G
+ON C.POINT BETWEEN G_START AND G_END;
+
+--
+SELECT * FROM STUDENT;
+SELECT * FROM SCORE;
+SELECT * FROM HAKJUM;
+
+-- 학생들의 이름, 점수, 학점 출력
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S,SCORE C,HAKJUM H
+WHERE S.STUDNO = C.STUDNO AND C.TOTAL BETWEEN H.MIN_POINT AND H.MAX_POINT;  
+
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S,SCORE C,HAKJUM H
+WHERE S.STUDNO = C.STUDNO 
+AND C.TOTAL >= H.MIN_POINT 
+AND C.TOTAL <= H.MAX_POINT;
+
+--JOIN ON 사용
+
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S JOIN SCORE C 
+ON S.STUDNO = C.STUDNO
+JOIN HAKJUM H
+ON  C.TOTAL >= H.MIN_POINT 
+AND C.TOTAL <= H.MAX_POINT;
+
+-- student , professor
+-- 학생이름과 지도교수 이름 출력하되 지도교수가 정해지지 않은 학생이름도 출력
+SELECT * FROM STUDENT;
+SELECT * FROM PROFESSOR;
+
+SELECT S.NAME 학생이름, P.NAME 지도교수
+FROM STUDENT S,PROFESSOR P
+WHERE S.PROFNO = P.PROFNO (+);
+
+SELECT S.NAME, P.NAME
+FROM STUDENT S LEFT OUTER JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO;
+
+SELECT S.NAME, P.NAME
+FROM PROFESSOR P RIGHT OUTER JOIN STUDENT S
+ON S.PROFNO = P.PROFNO;
+
+--101번 학과에 소속된 지도교수 이름출력
+--단 지도교수가 없는 학생도 출력(학생이름, 지도교수이름 출력)
+
+SELECT S.NAME 학생이름, P.NAME 지도교수, P.DEPTNO 학과
+FROM STUDENT S,PROFESSOR P
+WHERE S.DEPTNO1 = 101 
+AND S.PROFNO = P.PROFNO(+);
+
+SELECT S.NAME 학생이름, P.NAME 지도교수, P.DEPTNO 학과
+FROM STUDENT S LEFT OUTER JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO(+)   WHERE S.DEPTNO1 = 101;
+------------------------
+SELECT * FROM DEPT2;
+SELECT * FROM EMP2;
+-- DEPT2에서 지역이 SEOUL BRANCH OFFICE인 사원의 사원번호,이름, 부서번호
+
+SELECT E.EMPNO,E.NAME,E.DEPTNO
+FROM EMP2 E, DEPT2 D
+WHERE DEPTNO = DCODE AND AREA = 'Seoul Branch Office';
+
+--
+
+SELECT EMPNO,NAME,DEPTNO
+FROM EMP2
+WHERE DEPTNO IN (
+                    SELECT DCODE
+                    FROM DEPT2
+                    WHERE AREA = 'Seoul Branch Office'
+                );
+----
+-- STUDENT 테이블 각 학년별 최대 몸무게를 가진 학생의 학년,이름,몸무게를 출력하세요
+SELECT * FROM STUDENT;
+
+SELECT GRADE 학년, NAME 이름, MAX(WEIGHT)몸무게
+FROM STUDENT
+GROUP BY GRADE,NAME;
+
+SELECT GRADE, NAME, WEIGHT
+FROM STUDENT
+WHERE(GRADE,WEIGHT) IN (
+                        SELECT GRADE , MAX(WEIGHT)
+                        FROM STUDENT
+                        GROUP BY GRADE
+                        );
+                        
+--(PROFESSOR, DEPARTMENT) 테이블
+-- 각 학과별 입사일 가장 오래된 교수의 교수번호, 이름, 학과명 출력
+-- 단 입사일은 오름차순 (PROFESSOR, DEPARTMENT)
+SELECT * FROM PROFESSOR;
+SELECT DEPTNO,MIN(HIREDATE)
+FROM PROFESSOR
+GROUP BY DEPTNO;
+
+SELECT P.PROFNO,P.NAME,P.DEPTNO,
+       D.DNAME,P.HIREDATE
+FROM PROFESSOR P, DEPARTMENT D
+WHERE P.DEPTNO = D.DEPTNO
+AND (P.DEPTNO, P.HIREDATE) IN (SELECT DEPTNO, MIN(HIREDATE)
+                                FROM PROFESSOR
+                                GROUP BY DEPTNO)
+ORDER BY P.DEPTNO;
+
+SELECT P.PROFNO,P.NAME,P.DEPTNO,
+       D.DNAME,P.HIREDATE
+FROM PROFESSOR P, DEPARTMENT D
+WHERE P.DEPTNO = D.DEPTNO
+AND (P.DEPTNO, P.HIREDATE) IN (SELECT DEPTNO, MIN(HIREDATE)
+                                FROM PROFESSOR
+                                GROUP BY DEPTNO)
+ORDER BY 3;
