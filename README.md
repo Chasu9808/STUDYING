@@ -1,0 +1,5 @@
+"# STUDY" 
+"# STUDYING" 
+"# STUDY" 
+"# STUDY" 
+"# STUDYING" 

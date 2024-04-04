@@ -1,0 +1,455 @@
+-- HR
+-- 1. professor 테이블에서 교수의 이름과 학과명을 출력하되
+-- 학과 번호가 101번이면 'Computer Engineering'
+-- 102 = 'Multimedia Engineering'
+-- 103 = 'Software Engineering'
+-- 나머지는 'ETC'로 출력하세요
+
+SELECT * FROM PROFESSOR;
+SELECT PROFNO, NAME,DEPTNO,
+DECODE(DEPTNO,101,'Computer Engineering',
+              102,'Multimedia Engineering',
+              103, 'Software Engineering',
+              'ETC')
+FROM PROFESSOR;
+
+-- 2. STUDENT
+SELECT * FROM STUDENT;
+-- TEL의 지역번호에서 02 서울, 051 부산, 052 울산, 053 대구
+-- 나머지는 기타로 출력
+-- 이름, 전화번호, 지역 출력
+
+-- SELECT NAME,TEL,
+-- CASE
+-- WHEN SUBSTR(TEL,1,3) LIKE '02%' THEN '서울'
+-- WHEN SUBSTR(TEL,1,3) LIKE '051%' THEN '부산'
+-- WHEN SUBSTR(TEL,1,3) LIKE '052%' THEN '울산'
+-- WHEN SUBSTR(TEL,1,3) LIKE '053%' THEN '대구'
+-- ELSE '기타'
+-- END AS "지역"
+-- FROM STUDENT;
+
+SELECT NAME, TEL,
+DECODE (SUBSTR(TEL ,1,INSTR(TEL, ')')-1),'2','서울',
+'051','부산',
+'052','울산',
+'053','대구',
+'기타')지역
+FROM STUDENT;
+
+-- PROFESSOR 테이블
+-- 학과별로 소속 교수들의 평균급여, 최소급여, 최대급여 출력
+-- 단, 평균급여가 300 넘는 것만 출력
+SELECT * FROM PROFESSOR;
+SELECT DEPTNO ,ROUND(AVG(PAY)),MIN(PAY),MAX(PAY)
+FROM PROFESSOR
+GROUP BY DEPTNO
+HAVING AVG(PAY) > 300
+ORDER BY DEPTNO;
+
+--STUDENT 테이블
+--학생수가 4명 이상인 학년에 대해서 학년, 학생 수, 평균 키, 평균 몸무게를 출력
+--단, 평균 키와 평균 몸무게는 소숫점 첫 번째 자리에서 반올림하고,
+--출력순서는 평균 키가 높은 순부터 내림차순으로 출력하여라.
+SELECT * FROM STUDENT;
+SELECT GRADE ||'학년', COUNT(*) 학생수, ROUND(AVG(HEIGHT)) 평균키, ROUND(AVG(WEIGHT)) 평균몸무게
+FROM STUDENT
+GROUP BY GRADE
+HAVING COUNT(*) >=4
+ORDER BY AVG(HEIGHT) DESC;
+
+-- 학생이름, 지도교수 이름 출력
+SELECT * FROM STUDENT;
+SELECT * FROM PROFESSOR;
+
+
+SELECT S.NAME 학생,P.NAME 지도교수  
+FROM STUDENT S,PROFESSOR P
+WHERE S.PROFNO = P.PROFNO;
+
+SELECT S.NAME 학생,P.NAME 지도교수 
+FROM STUDENT S JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO;
+
+--GIFT, CUSTOMER
+SELECT * FROM GIFT;
+SELECT * FROM CUSTOMER;
+--고객이름, 포인트, 선물
+--비 등가 조인
+SELECT C.GNAME 고객이름, C.POINT 포인트, G.GNAME 선물
+FROM CUSTOMER C, GIFT G
+WHERE C.POINT BETWEEN G_START AND G_END;
+
+SELECT C.GNAME 고객이름, C.POINT 포인트, G.GNAME 선물
+FROM CUSTOMER C JOIN GIFT G
+ON C.POINT BETWEEN G_START AND G_END;
+
+--
+SELECT * FROM STUDENT;
+SELECT * FROM SCORE;
+SELECT * FROM HAKJUM;
+
+-- 학생들의 이름, 점수, 학점 출력
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S,SCORE C,HAKJUM H
+WHERE S.STUDNO = C.STUDNO AND C.TOTAL BETWEEN H.MIN_POINT AND H.MAX_POINT;  
+
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S,SCORE C,HAKJUM H
+WHERE S.STUDNO = C.STUDNO 
+AND C.TOTAL >= H.MIN_POINT 
+AND C.TOTAL <= H.MAX_POINT;
+
+--JOIN ON 사용
+
+SELECT S.NAME, C.TOTAL, H.GRADE
+FROM STUDENT S JOIN SCORE C 
+ON S.STUDNO = C.STUDNO
+JOIN HAKJUM H
+ON  C.TOTAL >= H.MIN_POINT 
+AND C.TOTAL <= H.MAX_POINT;
+
+-- student , professor
+-- 학생이름과 지도교수 이름 출력하되 지도교수가 정해지지 않은 학생이름도 출력
+SELECT * FROM STUDENT;
+SELECT * FROM PROFESSOR;
+
+SELECT S.NAME 학생이름, P.NAME 지도교수
+FROM STUDENT S,PROFESSOR P
+WHERE S.PROFNO = P.PROFNO (+);
+
+SELECT S.NAME, P.NAME
+FROM STUDENT S LEFT OUTER JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO;
+
+SELECT S.NAME, P.NAME
+FROM PROFESSOR P RIGHT OUTER JOIN STUDENT S
+ON S.PROFNO = P.PROFNO;
+
+--101번 학과에 소속된 지도교수 이름출력
+--단 지도교수가 없는 학생도 출력(학생이름, 지도교수이름 출력)
+
+SELECT S.NAME 학생이름, P.NAME 지도교수, P.DEPTNO 학과
+FROM STUDENT S,PROFESSOR P
+WHERE S.DEPTNO1 = 101 
+AND S.PROFNO = P.PROFNO(+);
+
+SELECT S.NAME 학생이름, P.NAME 지도교수, P.DEPTNO 학과
+FROM STUDENT S LEFT OUTER JOIN PROFESSOR P
+ON S.PROFNO = P.PROFNO(+)   WHERE S.DEPTNO1 = 101;
+------------------------
+SELECT * FROM DEPT2;
+SELECT * FROM EMP2;
+-- DEPT2에서 지역이 SEOUL BRANCH OFFICE인 사원의 사원번호,이름, 부서번호
+
+SELECT E.EMPNO,E.NAME,E.DEPTNO
+FROM EMP2 E, DEPT2 D
+WHERE DEPTNO = DCODE AND AREA = 'Seoul Branch Office';
+
+--
+
+SELECT EMPNO,NAME,DEPTNO
+FROM EMP2
+WHERE DEPTNO IN (
+                    SELECT DCODE
+                    FROM DEPT2
+                    WHERE AREA = 'Seoul Branch Office'
+                );
+----
+-- STUDENT 테이블 각 학년별 최대 몸무게를 가진 학생의 학년,이름,몸무게를 출력하세요
+SELECT * FROM STUDENT;
+
+SELECT GRADE 학년, NAME 이름, MAX(WEIGHT)몸무게
+FROM STUDENT
+GROUP BY GRADE,NAME;
+
+SELECT GRADE, NAME, WEIGHT
+FROM STUDENT
+WHERE(GRADE,WEIGHT) IN (
+                        SELECT GRADE , MAX(WEIGHT)
+                        FROM STUDENT
+                        GROUP BY GRADE
+                        );
+                        
+--(PROFESSOR, DEPARTMENT) 테이블
+-- 각 학과별 입사일 가장 오래된 교수의 교수번호, 이름, 학과명 출력
+-- 단 입사일은 오름차순 (PROFESSOR, DEPARTMENT)
+SELECT * FROM PROFESSOR;
+SELECT DEPTNO,MIN(HIREDATE)
+FROM PROFESSOR
+GROUP BY DEPTNO;
+
+SELECT P.PROFNO,P.NAME,P.DEPTNO,
+       D.DNAME,P.HIREDATE
+FROM PROFESSOR P, DEPARTMENT D
+WHERE P.DEPTNO = D.DEPTNO
+AND (P.DEPTNO, P.HIREDATE) IN (SELECT DEPTNO, MIN(HIREDATE)
+                                FROM PROFESSOR
+                                GROUP BY DEPTNO)
+ORDER BY P.DEPTNO;
+
+SELECT P.PROFNO,P.NAME,P.DEPTNO,
+       D.DNAME,P.HIREDATE
+FROM PROFESSOR P, DEPARTMENT D
+WHERE P.DEPTNO = D.DEPTNO
+AND (P.DEPTNO, P.HIREDATE) IN (SELECT DEPTNO, MIN(HIREDATE)
+                                FROM PROFESSOR
+                                GROUP BY DEPTNO)
+ORDER BY 3;
+
+--SCOTT
+--P238 
+-- EMP와 DEPT의 급여가 3000이상이며 직속상관이 반드시 존재함
+-- 사원번호, 이름, 직책,매니저,hiredate,sal,comm,deptno,dname, loc
+-- join ~ using 사용
+select empno, ename, job, mgr, hiredate, sal, comm, deptno, dname, loc
+from emp e join dept d using(deptno)
+where sal >=3000 and mgr is not null;
+
+select * from emp;
+select * from dept;
+
+select empno, ename, job, mgr, hiredate, sal, comm, d.deptno, dname, loc
+from emp e join dept d 
+on d.deptno = e.deptno and sal >=3000 and mgr is not null;
+--P242 서브쿼리 WHERE 조건전에 쿼리를 들어가는 것
+SELECT * FROM EMP;
+--WARD 보다 월급이 많이 받은 사원 이름 출력
+SELECT SAL FROM EMP WHERE ENAME = 'WARD';
+SELECT ENAME
+FROM EMP
+WHERE SAL > (
+            SELECT SAL 
+            FROM EMP
+            WHERE ENAME = 'WARD'
+            );
+-- 'ALLEN'의 직무(JOB)와 같은 사람의 이름,부서명,급여,직무출력
+SELECT * FROM EMP;
+SELECT * FROM DEPT;
+SELECT ENAME,JOB,D.DNAME,SAL
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO 
+AND JOB = (
+            SELECT JOB 
+            FROM EMP
+            WHERE ENAME = 'ALLEN'
+          )
+            AND ENAME NOT LIKE 'ALLEN';
+            
+--'SMITH' 보다 일찍 입사한 사원의 정보
+SELECT *
+FROM EMP
+WHERE HIREDATE < '81/02/20';
+
+SELECT *
+FROM EMP
+WHERE HIREDATE < 
+                (
+                    SELECT HIREDATE
+                    FROM EMP
+                    WHERE ENAME = 'ALLEN'
+                );
+-- 전체 사원의 평균 임금보다 많은 사원의 사원번호,이름,부서명,입사일 출력
+
+
+SELECT EMPNO,ENAME,D.DNAME,HIREDATE
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO
+AND
+SAL > (
+            SELECT AVG(SAL)
+            FROM EMP
+      );
+
+
+--P248
+-- 전체 사원의 평균 급여보다 작거나 같은 급여를 받고 있는
+-- 20번 부서의 사원 및 부서정보
+-- 사원번호,이름,직무,급여,부서번호,부서명,부서지역
+
+SELECT EMPNO,ENAME,JOB,SAL,E.DEPTNO,DNAME,LOC
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO
+AND SAL <= (
+            SELECT AVG(SAL)
+            FROM EMP
+           )
+AND D.DEPTNO = 20;
+
+--각 부서별 최고급여와 동일한 급여를 받는 사원정보를 출력
+SELECT *
+FROM EMP
+WHERE SAL IN (
+                SELECT MAX(SAL)
+                FROM EMP
+                GROUP BY DEPTNO
+             );
+-- 30번 부서 중에서 10번 부서에는 없는 업무(JOB)를 하는 SALES
+-- 사원의 사원번호, 이름, 부서명, 입사일, 지역 출력
+SELECT * FROM DEPT;
+
+SELECT JOB FROM EMP E
+WHERE E.DEPTNO = 10;
+
+SELECT JOB FROM EMP
+WHERE DEPTNO = 30;
+
+SELECT EMPNO,ENAME,D.DNAME,HIREDATE,D.LOC
+FROM EMP E,DEPT D
+WHERE E.DEPTNO = D.DEPTNO
+AND E.DEPTNO = 10
+AND E.JOB NOT IN (
+                     SELECT JOB FROM EMP 
+                     WHERE DEPTNO = 30                  
+                );
+--MGR 이 KING인 사원의 이름과 JOB 출력 
+--서브쿼리 출력
+SELECT ENAME, JOB
+FROM EMP
+WHERE MGR = (
+                SELECT EMPNO FROM EMP
+                WHERE ENAME = 'KING'
+               );
+
+--서브쿼리 X
+
+SELECT E1.ENAME, E1.JOB
+FROM EMP E1, EMP E2
+WHERE E1.MGR = E2.EMPNO AND E2.ENAME = 'KING';
+
+SELECT * FROM EMP;
+
+-- 매니저가 KING이거나 FORD인 사원의 이름과 직급 출력
+
+SELECT EMPNO,ENAME,JOB,MGR
+FROM EMP
+WHERE MGR = (
+                SELECT EMPNO FROM EMP
+                WHERE ENAME = 'FORD'
+            )
+OR
+MGR = (
+                SELECT EMPNO FROM EMP
+                WHERE ENAME = 'KING'
+            )
+;
+
+SELECT ENAME,JOB
+FROM EMP
+WHERE MGR IN (
+                SELECT EMPNO
+                FROM EMP
+                WHERE ENAME = 'KING' OR ENAME = 'FORD'
+                );
+            
+SELECT E.ENAME, E.JOB
+FROM EMP E, EMP M
+WHERE E.MGR = M.EMPNO AND (M.ENAME = 'KING' OR M.ENAME='FORD');
+
+--P251
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL < ANY(SELECT SAL FROM EMP WHERE JOB='SALESMAN'
+                OR ENAME='FORD' );
+
+SELECT ENAME,JOB,SAL
+FROM EMP;
+
+--30번 부서보다 적은 급여를 받는 사원 출력 ANY ,ALL 사용
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL < ANY(
+                    SELECT MAX(SAL) FROM EMP WHERE DEPTNO = '30'
+                );
+
+SELECT ENAME, SAL
+FROM EMP          
+WHERE SAL < ALL(
+                    SELECT MAX(SAL) FROM EMP WHERE DEPTNO = '30'
+                );
+                
+-- 239~240P 8장 연습문제
+-- 급여 SAL 2000초과인 사원들의 부서정보, 사원정보 출력
+SELECT E.DEPTNO, DNAME, EMPNO,ENAME,SAL
+FROM EMP E,DEPT D
+WHERE SAL > 2000 AND E.DEPTNO = D.DEPTNO;
+
+SELECT DEPTNO, DNAME, EMPNO,ENAME,SAL
+FROM EMP E NATURAL JOIN DEPT D
+WHERE SAL > 2000;
+
+--각 부서별 (평균,최대,최소)급여, 사원수 출력
+SELECT E.DEPTNO,DNAME,TRUNC(AVG(SAL)) AVG_SAL,MAX(SAL) MAX_SAL,MIN(SAL) MIN_SAL,COUNT(*) CNT
+FROM EMP E,DEPT D
+WHERE E.DEPTNO = D.DEPTNO
+GROUP BY E.DEPTNO,DNAME;
+
+SELECT E.DEPTNO,DNAME,ROUND(AVG(SAL)) AVG_SAL,MAX(SAL) MAX_SAL,MIN(SAL) MIN_SAL,COUNT(*) CNT
+FROM EMP E JOIN DEPT D 
+ON E.DEPTNO = D.DEPTNO
+GROUP BY E.DEPTNO,DNAME;
+
+SELECT DEPTNO,DNAME,TRUNC(AVG(SAL)) AVG_SAL,MAX(SAL) MAX_SAL,MIN(SAL) MIN_SAL,COUNT(*) CNT
+FROM EMP E JOIN DEPT D
+USING(DEPTNO)
+GROUP BY DEPTNO,DNAME;
+
+--모든 부서정보와 사원정보를 부서번호,사원이름으로 정렬하여 출력하기
+SELECT E.DEPTNO, D.DNAME, E.EMPNO, E.ENAME,E.JOB,E.SAL
+FROM EMP E, DEPT D
+WHERE D.DEPTNO = E.DEPTNO(+)
+ORDER BY D.DEPTNO,E.ENAME ASC;
+
+SELECT D.DEPTNO, D.DNAME, E.EMPNO, E.ENAME,E.JOB,E.SAL
+FROM DEPT D LEFT OUTER JOIN EMP E
+ON E.DEPTNO=D.DEPTNO
+ORDER BY D.DEPTNO,E.ENAME ASC;
+
+-- 모든 부서 정보, 사원 정보, 급여 등급 정보, 각 사원의 직속 상관의 정보를 부서번호,
+-- 사원번호 순서로 정렬하여 출력해 보세요
+SELECT * FROM EMP;
+SELECT * FROM DEPT;
+SELECT * FROM SALGRADE;
+
+SELECT D.DEPTNO, D.DNAME, 
+       E.EMPNO, E.ENAME, E.MGR, E.SAL, E.DEPTNO,
+       S.LOSAL, S.HISAL, S.GRADE,
+       E2.EMPNO MGR_EMPNO, E2.ENAME MGR_ENAME
+FROM EMP E, DEPT D, SALGRADE S, EMP E2
+WHERE E.DEPTNO(+) = D.DEPTNO
+AND E.SAL BETWEEN S.LOSAL(+) AND S.HISAL(+)
+AND E.MGR = E2.EMPNO(+)
+ORDER BY D.DEPTNO, E.EMPNO;
+
+SELECT D.DEPTNO, D.DNAME, 
+       E.EMPNO, E.ENAME, E.MGR, E.SAL, E.DEPTNO,
+       S.LOSAL, S.HISAL, S.GRADE,
+       E2.EMPNO MGR_EMPNO, E2.ENAME MGR_ENAME
+FROM EMP E 
+RIGHT OUTER JOIN DEPT D
+ON(E.DEPTNO = D.DEPTNO)
+LEFT OUTER JOIN SALGRADE S
+ON(E.SAL BETWEEN S.LOSAL AND S.HISAL)
+LEFT OUTER JOIN EMP E2
+ON(E.MGR = E2.EMPNO)
+ORDER BY D.DEPTNO, E.EMPNO;
+
+SELECT * FROM DEPT
+WHERE EXISTS (
+                SELECT DEPTNO
+                FROM DEPT
+                WHERE DEPTNO =20
+                );
+                
+--P258 부서별 최대 급여를 가진 사원 정보 출력
+SELECT DEPTNO, MAX(SAL)
+FROM EMP
+GROUP BY DEPTNO;
+
+SELECT *
+FROM EMP
+WHERE(DEPTNO,SAL) IN (
+                        SELECT DEPTNO, MAX(SAL)
+                        FROM EMP
+                        GROUP BY DEPTNO
+                        );
